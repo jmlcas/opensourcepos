@@ -1,0 +1,64 @@
+services:
+
+    sqlscript:
+        image: jekkos/opensourcepos:sql-master
+        command: /bin/sh -c 'exit 0'
+
+    ospos:
+        image: jekkos/opensourcepos:master
+        restart: unless-stopped
+        depends_on:
+            - mysql
+        ports:
+            - "8200:80"
+        networks:
+            - app_net
+            - db_net
+        volumes:
+            - ./ospos_up:/app/public/uploads
+            - ./ospos_logs:/app/application/logs
+        environment:
+            - CI_ENV=production
+            - FORCE_HTTPS=false
+            - PHP_TIMEZONE=UTC
+            - MYSQL_USERNAME=admin
+            - MYSQL_PASSWORD=pointofsale
+            - MYSQL_DB_NAME=ospos
+            - MYSQL_HOST_NAME=mysql
+
+    mysql:
+        image: mariadb:10.5
+        container_name: mysql
+        restart: unless-stopped
+        expose:
+            - "3306"
+        networks:
+            - db_net
+        volumes_from:
+            - sqlscript
+        volumes:
+            - ./ospos_db:/var/lib/mysql:rw
+        environment:
+            - MYSQL_ROOT_PASSWORD=pointofsale
+            - MYSQL_DATABASE=ospos
+            - MYSQL_USER=admin
+            - MYSQL_PASSWORD=pointofsale
+            
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        restart: unless-stopped
+        depends_on:
+            - mysql
+        ports:
+            - "8080:80"
+        networks:
+            - app_net
+        environment:
+            - MYSQL_USERNAME=admin
+            - MYSQL_ROOT_PASSWORD=pointofsale
+            - PMA_HOST=mysql            
+
+networks:
+    app_net:
+    db_net:      
