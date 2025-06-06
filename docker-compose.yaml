@@ -13,7 +13,6 @@ services:
             - "8200:80"
         networks:
             - app_net
-            - db_net
         volumes:
             - ./ospos_up:/app/public/uploads
             - ./ospos_logs:/app/application/logs
@@ -33,7 +32,7 @@ services:
         expose:
             - "3306"
         networks:
-            - db_net
+            - app_net
         volumes_from:
             - sqlscript
         volumes:
@@ -60,5 +59,4 @@ services:
             - PMA_HOST=mysql            
 
 networks:
-    app_net:
-    db_net:      
+    app_net:     
